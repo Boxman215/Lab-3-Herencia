@@ -20,12 +20,14 @@ El UML se dejo fuera porque fue solicitado realizarlo por separado.
 
 ## Compilar y ejecutar
 
-Desde esta carpeta:
+Desde la carpeta principal del proyecto:
 
 ```text
-javac -encoding UTF-8 *.java
-java Main
+javac -encoding UTF-8 -d bin src\*.java
+java -cp bin Main
 ```
+
+La carpeta `src` contiene el codigo fuente, `bin` los archivos compilados, `lib` queda disponible para futuras librerias y `.vscode` contiene la configuracion para abrir y ejecutar el proyecto en Visual Studio Code.
 
 El programa inicia con 8 ordenes pendientes y 3 cuadrillas de ejemplo. Los datos viven solamente en memoria.
 
