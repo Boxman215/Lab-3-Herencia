@@ -2,34 +2,30 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class Empresa {
-    private final Map<String, Orden> ordenes = new LinkedHashMap<>();
-    private final Map<String, Cuadrilla> cuadrillas = new LinkedHashMap<>();
-    private final Map<String, Jornada> jornadas = new LinkedHashMap<>();
-    private final Map<String, Double> ingresosRegistroPorCategoria = new LinkedHashMap<>();
-    private final Map<String, Double> ingresosVisitasPorCategoria = new LinkedHashMap<>();
+    private Map<String, Orden> ordenes = new LinkedHashMap<>();
+    private Map<String, Cuadrilla> cuadrillas = new LinkedHashMap<>();
+    private Map<String, Jornada> jornadas = new LinkedHashMap<>();
     private double ingresosRegistro;
     private double ingresosVisitas;
 
     public void registrarOrden(Orden orden, boolean cobrar) {
-        String clave = orden.getCodigo().toLowerCase();
-        if (ordenes.containsKey(clave)) {
+        String codigo = orden.getCodigo().toLowerCase();
+        if (ordenes.containsKey(codigo)) {
             throw new IllegalArgumentException("Ya existe una orden con ese codigo.");
         }
-        ordenes.put(clave, orden);
         if (cobrar) {
-            double costo = orden.getServicio().calcularCosto();
-            String categoria = orden.getServicio().getCategoria();
-            ingresosRegistro += costo;
-            ingresosRegistroPorCategoria.merge(categoria, costo, Double::sum);
+            orden.cobrar();
+            ingresosRegistro += orden.getIngresoRegistro();
         }
+        ordenes.put(codigo, orden);
     }
 
     public void registrarCuadrilla(Cuadrilla cuadrilla) {
-        String clave = cuadrilla.getCodigo().toLowerCase();
-        if (cuadrillas.containsKey(clave)) {
+        String codigo = cuadrilla.getCodigo().toLowerCase();
+        if (cuadrillas.containsKey(codigo)) {
             throw new IllegalArgumentException("Ya existe una cuadrilla con ese codigo.");
         }
-        cuadrillas.put(clave, cuadrilla);
+        cuadrillas.put(codigo, cuadrilla);
     }
 
     public void crearJornada(String codigo, String codigoCuadrilla) {
@@ -57,11 +53,6 @@ public class Empresa {
     public void iniciarJornada(String codigoJornada) {
         Jornada jornada = obtenerJornada(codigoJornada);
         ingresosVisitas += jornada.iniciar();
-        for (Orden orden : jornada.getOrdenes()) {
-            if (orden.getVisitasRealizadas() > 1) {
-                ingresosVisitasPorCategoria.merge(orden.getServicio().getCategoria(), 40.0, Double::sum);
-            }
-        }
     }
 
     public void registrarResultado(String codigoJornada, String codigoOrden, ResultadoVisita resultado) {
@@ -70,66 +61,61 @@ public class Empresa {
 
     public Orden obtenerOrden(String codigo) {
         Orden orden = ordenes.get(codigo.toLowerCase());
-        if (orden == null) {
-            throw new IllegalArgumentException("No existe esa orden.");
-        }
+        if (orden == null) throw new IllegalArgumentException("No existe esa orden.");
         return orden;
     }
 
     public Cuadrilla obtenerCuadrilla(String codigo) {
         Cuadrilla cuadrilla = cuadrillas.get(codigo.toLowerCase());
-        if (cuadrilla == null) {
-            throw new IllegalArgumentException("No existe esa cuadrilla.");
-        }
+        if (cuadrilla == null) throw new IllegalArgumentException("No existe esa cuadrilla.");
         return cuadrilla;
     }
 
     public Jornada obtenerJornada(String codigo) {
         Jornada jornada = jornadas.get(codigo.toLowerCase());
-        if (jornada == null) {
-            throw new IllegalArgumentException("No existe esa jornada.");
-        }
+        if (jornada == null) throw new IllegalArgumentException("No existe esa jornada.");
         return jornada;
     }
 
     public void mostrarOrdenes() {
-        if (ordenes.isEmpty()) {
-            System.out.println("No hay ordenes.");
-            return;
+        for (Orden orden : ordenes.values()) {
+            System.out.println(orden.resumen());
         }
-        ordenes.values().forEach(o -> System.out.println(o.resumen()));
     }
 
     public void mostrarCuadrillas() {
-        if (cuadrillas.isEmpty()) {
-            System.out.println("No hay cuadrillas.");
-            return;
+        for (Cuadrilla cuadrilla : cuadrillas.values()) {
+            System.out.println(cuadrilla);
         }
-        cuadrillas.values().forEach(c -> System.out.println(c));
     }
 
     public void mostrarReporte() {
+        String[] categorias = {
+                "Diagnostico", "Instalacion", "Instalacion electrica certificada",
+                "Mantenimiento de aire acondicionado"
+        };
         System.out.println("\nORDENES POR CATEGORIA Y ESTADO");
-        Map<String, Map<EstadoOrden, Integer>> conteo = new LinkedHashMap<>();
-        for (Orden orden : ordenes.values()) {
-            conteo.putIfAbsent(orden.getServicio().getCategoria(), new LinkedHashMap<>());
-            Map<EstadoOrden, Integer> estados = conteo.get(orden.getServicio().getCategoria());
-            estados.put(orden.getEstado(), estados.getOrDefault(orden.getEstado(), 0) + 1);
+        for (String categoria : categorias) {
+            int pendientes = contar(categoria, EstadoOrden.PENDIENTE);
+            int atencion = contar(categoria, EstadoOrden.EN_ATENCION);
+            int completadas = contar(categoria, EstadoOrden.COMPLETADA);
+            int canceladas = contar(categoria, EstadoOrden.CANCELADA);
+            System.out.println(categoria + ": pendientes=" + pendientes
+                    + ", atencion=" + atencion + ", completadas=" + completadas
+                    + ", canceladas=" + canceladas);
         }
-        conteo.forEach((categoria, estados) -> System.out.println(categoria + ": " + estados));
         System.out.printf("Ingresos por registro: Q%.2f%n", ingresosRegistro);
         System.out.printf("Ingresos por visitas adicionales: Q%.2f%n", ingresosVisitas);
         System.out.printf("Ingresos totales: Q%.2f%n", ingresosRegistro + ingresosVisitas);
         System.out.println("INGRESOS POR CATEGORIA");
-        Map<String, Boolean> categorias = new LinkedHashMap<>();
-        for (Orden orden : ordenes.values()) {
-            categorias.put(orden.getServicio().getCategoria(), true);
-        }
-        for (String categoria : categorias.keySet()) {
-            double registro = ingresosRegistroPorCategoria.getOrDefault(categoria, 0.0);
-            double visitas = ingresosVisitasPorCategoria.getOrDefault(categoria, 0.0);
-            System.out.printf("%s: registro Q%.2f + visitas Q%.2f = Q%.2f%n",
-                    categoria, registro, visitas, registro + visitas);
+        for (String categoria : categorias) {
+            double total = 0;
+            for (Orden orden : ordenes.values()) {
+                if (orden.getServicio().getCategoria().equals(categoria)) {
+                    total += orden.getIngresoRegistro() + orden.getIngresosVisitas();
+                }
+            }
+            System.out.printf("%s: Q%.2f%n", categoria, total);
         }
         System.out.println("JORNADAS ABIERTAS");
         boolean hayAbiertas = false;
@@ -139,8 +125,17 @@ public class Empresa {
                 hayAbiertas = true;
             }
         }
-        if (!hayAbiertas) {
-            System.out.println("No hay jornadas abiertas.");
+        if (!hayAbiertas) System.out.println("No hay jornadas abiertas.");
+    }
+
+    private int contar(String categoria, EstadoOrden estado) {
+        int total = 0;
+        for (Orden orden : ordenes.values()) {
+            if (orden.getServicio().getCategoria().equals(categoria)
+                    && orden.getEstado() == estado) {
+                total++;
+            }
         }
+        return total;
     }
 }

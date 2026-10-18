@@ -13,18 +13,18 @@ public class Main {
             int opcion = leerEntero("Elige una opcion: ");
             try {
                 switch (opcion) {
-                    case 1 -> cotizar();
-                    case 2 -> registrarOrden();
-                    case 3 -> registrarCuadrilla();
-                    case 4 -> crearJornada();
-                    case 5 -> asignarOrden();
-                    case 6 -> retirarOrden();
-                    case 7 -> iniciarJornada();
-                    case 8 -> registrarResultado();
-                    case 9 -> consultar();
-                    case 10 -> EMPRESA.mostrarReporte();
-                    case 0 -> continuar = false;
-                    default -> System.out.println("Opcion no valida.");
+                    case 1: cotizar(); break;
+                    case 2: registrarOrden(); break;
+                    case 3: registrarCuadrilla(); break;
+                    case 4: crearJornada(); break;
+                    case 5: asignarOrden(); break;
+                    case 6: retirarOrden(); break;
+                    case 7: iniciarJornada(); break;
+                    case 8: registrarResultado(); break;
+                    case 9: consultar(); break;
+                    case 10: EMPRESA.mostrarReporte(); break;
+                    case 0: continuar = false; break;
+                    default: System.out.println("Opcion no valida.");
                 }
             } catch (IllegalArgumentException | IllegalStateException e) {
                 System.out.println("Operacion rechazada: " + e.getMessage());
@@ -116,14 +116,19 @@ public class Main {
         int tipo = leerEntero("Tipo de servicio: ");
         double horas = leerDecimal("Horas estimadas: ");
         Zona zona = leerZona();
-        return switch (tipo) {
-            case 1 -> new Diagnostico(horas, zona);
-            case 2 -> new Instalacion(horas, zona, leerEntero("Puntos a instalar: "));
-            case 3 -> new InstalacionElectrica(horas, zona,
-                    leerEntero("Puntos a instalar: "), leerDecimal("Valor declarado de materiales: "));
-            case 4 -> new MantenimientoAire(horas, zona, leerEntero("Capacidad en BTU: "));
-            default -> throw new IllegalArgumentException("Tipo de servicio no valido.");
-        };
+        switch (tipo) {
+            case 1:
+                return new Diagnostico(horas, zona);
+            case 2:
+                return new Instalacion(horas, zona, leerEntero("Puntos a instalar: "));
+            case 3:
+                return new InstalacionElectrica(horas, zona,
+                        leerEntero("Puntos a instalar: "), leerDecimal("Valor declarado de materiales: "));
+            case 4:
+                return new MantenimientoAire(horas, zona, leerEntero("Capacidad en BTU: "));
+            default:
+                throw new IllegalArgumentException("Tipo de servicio no valido.");
+        }
     }
 
     private static Zona leerZona() {

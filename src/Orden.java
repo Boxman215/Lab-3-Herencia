@@ -1,11 +1,13 @@
 public class Orden {
-    private final String codigo;
-    private final String cliente;
-    private final String direccion;
-    private final Servicio servicio;
+    private String codigo;
+    private String cliente;
+    private String direccion;
+    private Servicio servicio;
     private EstadoOrden estado;
     private int visitasRealizadas;
     private Jornada jornadaActual;
+    private boolean cobrada;
+    private double ingresosVisitas;
 
     public Orden(String codigo, String cliente, String direccion, Servicio servicio) {
         if (codigo == null || codigo.trim().isEmpty()) {
@@ -25,16 +27,20 @@ public class Orden {
         this.direccion = direccion.trim();
         this.servicio = servicio;
         this.estado = EstadoOrden.PENDIENTE;
-        this.visitasRealizadas = 0;
     }
 
     public String getCodigo() { return codigo; }
     public String getCliente() { return cliente; }
-    public String getDireccion() { return direccion; }
     public Servicio getServicio() { return servicio; }
     public EstadoOrden getEstado() { return estado; }
     public int getVisitasRealizadas() { return visitasRealizadas; }
     public Jornada getJornadaActual() { return jornadaActual; }
+    public double getIngresoRegistro() { return cobrada ? servicio.calcularCosto() : 0; }
+    public double getIngresosVisitas() { return ingresosVisitas; }
+
+    public void cobrar() {
+        cobrada = true;
+    }
 
     public boolean puedeAsignarse() {
         return estado == EstadoOrden.PENDIENTE
@@ -46,21 +52,25 @@ public class Orden {
         if (!puedeAsignarse()) {
             throw new IllegalStateException("La orden no esta disponible para asignacion.");
         }
-        this.jornadaActual = jornada;
+        jornadaActual = jornada;
     }
 
     public void retirarDe(Jornada jornada) {
         if (jornadaActual != jornada) {
             throw new IllegalStateException("La orden no pertenece a esta jornada.");
         }
-        this.jornadaActual = null;
+        jornadaActual = null;
     }
 
     public double iniciarVisita() {
         if (estado != EstadoOrden.PENDIENTE || jornadaActual == null) {
             throw new IllegalStateException("La orden no puede iniciar visita.");
         }
-        double cargo = visitasRealizadas > 0 ? 40.0 : 0.0;
+        double cargo = 0;
+        if (visitasRealizadas > 0) {
+            cargo = 40;
+            ingresosVisitas += cargo;
+        }
         visitasRealizadas++;
         estado = EstadoOrden.EN_ATENCION;
         return cargo;

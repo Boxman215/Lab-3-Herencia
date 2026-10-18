@@ -1,13 +1,11 @@
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 public class Jornada {
-    private final String codigo;
-    private final Cuadrilla cuadrilla;
-    private final List<Orden> ordenes;
-    private final Map<String, ResultadoVisita> resultados;
+    private String codigo;
+    private Cuadrilla cuadrilla;
+    private List<Orden> ordenes;
+    private List<String> resultadosRegistrados;
     private EstadoJornada estado;
 
     public Jornada(String codigo, Cuadrilla cuadrilla) {
@@ -20,7 +18,7 @@ public class Jornada {
         this.codigo = codigo.trim();
         this.cuadrilla = cuadrilla;
         this.ordenes = new ArrayList<>();
-        this.resultados = new LinkedHashMap<>();
+        this.resultadosRegistrados = new ArrayList<>();
         this.estado = EstadoJornada.PREPARACION;
     }
 
@@ -30,7 +28,11 @@ public class Jornada {
     public List<Orden> getOrdenes() { return new ArrayList<>(ordenes); }
 
     public double getHorasAsignadas() {
-        return ordenes.stream().mapToDouble(o -> o.getServicio().getHorasEstimadas()).sum();
+        double horas = 0;
+        for (Orden orden : ordenes) {
+            horas += orden.getServicio().getHorasEstimadas();
+        }
+        return horas;
     }
 
     public double getCapacidadDisponible() {
@@ -74,7 +76,7 @@ public class Jornada {
         for (Orden orden : ordenes) {
             if (orden.getEstado() != EstadoOrden.PENDIENTE
                     || orden.getVisitasRealizadas() >= orden.getServicio().maxVisitas()) {
-                throw new IllegalStateException("Una de las ordenes ya no puede iniciar visita.");
+                throw new IllegalStateException("Una orden ya no puede iniciar visita.");
             }
         }
         double cargos = 0;
@@ -89,13 +91,13 @@ public class Jornada {
         if (estado != EstadoJornada.INICIADA) {
             throw new IllegalStateException("La jornada no esta iniciada.");
         }
-        if (resultado == null || resultados.containsKey(codigoOrden)) {
+        if (resultado == null || resultadosRegistrados.contains(codigoOrden)) {
             throw new IllegalStateException("El resultado ya fue registrado o es invalido.");
         }
         Orden orden = buscarOrden(codigoOrden);
         orden.registrarResultado(resultado);
-        resultados.put(codigoOrden, resultado);
-        if (resultados.size() == ordenes.size()) {
+        resultadosRegistrados.add(codigoOrden);
+        if (resultadosRegistrados.size() == ordenes.size()) {
             estado = EstadoJornada.CERRADA;
             cuadrilla.liberar();
         }
