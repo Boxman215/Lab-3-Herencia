@@ -1,40 +1,39 @@
 # Lab 3 - Herencia: TecniHogar
 
-Aplicacion de consola en Java para gestionar servicios tecnicos a domicilio.
+En este proyecto hice una aplicación sencilla de consola en Java para una empresa que realiza servicios técnicos a domicilio.
 
-## Incluye
+## ¿Qué puede hacer?
 
-- Herencia y polimorfismo para las cuatro categorias de servicio.
-- Cotizaciones sin modificar ingresos.
-- Registro de ordenes, cuadrillas y jornadas.
-- Asignacion, retiro, inicio y resultado de visitas.
-- Cobro de visitas adicionales al iniciar la jornada.
-- Validaciones de capacidad, refrigeracion, estados, rangos y codigos repetidos.
-- Reportes de ordenes, estados, ingresos y jornadas abiertas.
+- Cotizar y registrar órdenes.
+- Registrar cuadrillas y crear jornadas.
+- Asignar y retirar órdenes.
+- Iniciar jornadas y registrar si una visita fue completada o fallida.
+- Mostrar reportes de órdenes, estados e ingresos.
+- Validar datos incorrectos, capacidad de cuadrillas y certificación en refrigeración.
 
-El UML se dejo fuera porque fue solicitado realizarlo por separado.
+Usé herencia para representar las cuatro categorías de servicio. El UML no está incluido porque lo realizaré por separado.
 
-## Requisitos
+## ¿Qué necesito?
 
-- Java JDK 17 o superior.
+Necesito tener instalado Java JDK 17 o una versión más reciente.
 
-## Compilar y ejecutar
+## ¿Cómo lo ejecuto?
 
-Desde la carpeta principal del proyecto:
+Desde la carpeta principal del proyecto, ejecuto:
 
 ```text
 javac -encoding UTF-8 -d bin src\*.java
 java -cp bin Main
 ```
 
-La carpeta `src` contiene el codigo fuente, `bin` los archivos compilados, `lib` queda disponible para futuras librerias y `.vscode` contiene la configuracion para abrir y ejecutar el proyecto en Visual Studio Code.
+La carpeta `src` tiene el código fuente, `bin` guarda los archivos compilados, `lib` queda disponible para librerías y `.vscode` contiene la configuración básica del proyecto.
 
-El programa inicia con 8 ordenes pendientes y 3 cuadrillas de ejemplo. Los datos viven solamente en memoria.
+El programa inicia con 8 órdenes pendientes y 3 cuadrillas de ejemplo. Los datos solo se guardan mientras el programa está abierto.
 
-## Pruebas rapidas sugeridas
+## Pruebas rápidas
 
-1. Usa `9` para ver las ordenes iniciales.
-2. Usa `10` y confirma que los ingresos empiezan en Q0.00.
-3. Cotiza una instalacion de 2.5 horas y 5 puntos: debe mostrar Q460.00.
-4. Crea una jornada con `C1`, asigna `I1` y `A1`, e intenta asignar `A1` a `C2`: debe rechazarse por refrigeracion.
-5. Inicia la jornada y registra resultados. Una visita fallida vuelve a pendiente si aun tiene visitas disponibles; al agotar el limite queda cancelada.
+1. Elijo `9` para ver las órdenes iniciales.
+2. Elijo `10` y reviso que los ingresos empiecen en Q0.00.
+3. Cotizo una instalación de 2.5 horas y 5 puntos. El resultado debe ser Q460.00.
+4. Creo una jornada con `C1`, asigno `I1` y `A1`, e intento asignar `A1` a `C2`. Esa asignación debe rechazarse porque `C2` no tiene certificación en refrigeración.
+5. Inicio una jornada y registro una visita fallida. La orden vuelve a pendiente mientras todavía tenga visitas disponibles.

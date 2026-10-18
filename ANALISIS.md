@@ -1,55 +1,54 @@
-# Analisis breve
+# Análisis breve
 
-## Requisitos y validaciones
+En este análisis explico de forma resumida cómo organicé el programa.
 
-El sistema conserva ordenes, servicios, clientes, direcciones, zonas, estados, visitas, cuadrillas, jornadas e ingresos.
+## Datos y acciones
 
-Permite cotizar, registrar ordenes, registrar cuadrillas, crear jornadas, asignar o retirar ordenes, iniciar jornadas, registrar resultados y consultar reportes.
+El programa guarda órdenes, clientes, direcciones, servicios, zonas, estados, visitas, cuadrillas, jornadas e ingresos.
 
-Se rechazan codigos vacios o repetidos, numeros no positivos, diagnosticos mayores de 1.5 horas, BTU fuera de rango, mantenimiento periferico, incompatibilidad de refrigeracion, exceso de capacidad y operaciones fuera de estado. Una operacion rechazada no modifica la informacion anterior.
+Con el menú puedo cotizar, registrar órdenes, registrar cuadrillas, crear jornadas, asignar o retirar órdenes, iniciar jornadas, registrar resultados y ver reportes.
 
-## Decisiones que dependen de la categoria
+También valido que los códigos no estén vacíos ni repetidos, que los números sean positivos, que los diagnósticos no pasen de 1.5 horas, que los BTU sean válidos y que el aire acondicionado solo se asigne a una cuadrilla certificada.
 
-Cada subclase de `Servicio` calcula su propio costo, tiempo de atencion, limite de visitas y compatibilidad con cuadrillas. `InstalacionElectrica` reutiliza el calculo de `Instalacion` y agrega certificado, garantia, dias y su limite de visitas.
+Si una operación no es válida, el programa muestra un mensaje y conserva la información anterior.
 
-La jornada solo pregunta a la orden por su servicio; no necesita conocer el tipo concreto. Esto mantiene el polimorfismo y evita verificar tipos con `instanceof`.
+## Herencia
+
+Creé una clase abstracta llamada `Servicio`. De ella salen `Diagnostico`, `Instalacion`, `InstalacionElectrica` y `MantenimientoAire`.
+
+Cada tipo de servicio calcula su propio costo, sus días de atención y el máximo de visitas. Por eso la jornada trabaja con un `Servicio` sin tener que preguntar qué clase exacta es.
+
+La instalación eléctrica extiende a la instalación porque usa las mismas reglas básicas. Después agrega el certificado, la garantía, dos días más de atención y un límite de dos visitas.
 
 ## Estados
 
-### Orden
+Una orden puede estar en estos estados:
 
-- `PENDIENTE`: orden registrada o visita fallida con visitas disponibles.
-- `EN_ATENCION`: la jornada inicio y la visita esta en curso.
-- `COMPLETADA`: la visita termino correctamente.
-- `CANCELADA`: una visita fallo y se alcanzo el limite permitido.
+- `PENDIENTE`: está esperando una jornada.
+- `EN_ATENCION`: su visita ya comenzó.
+- `COMPLETADA`: el servicio terminó correctamente.
+- `CANCELADA`: se acabaron las visitas permitidas.
 
-### Jornada
+Una jornada puede estar en estos estados:
 
-- `PREPARACION`: se pueden asignar y retirar ordenes.
-- `INICIADA`: las ordenes estan en atencion y se esperan resultados.
-- `CERRADA`: todas las ordenes tienen resultado y la cuadrilla queda libre.
+- `PREPARACION`: puedo asignar o retirar órdenes.
+- `INICIADA`: las órdenes están en atención.
+- `CERRADA`: ya registré todos los resultados.
 
-## Responsabilidades principales
+## Clases principales
 
-- `Servicio`: reglas variables por categoria.
-- `Orden`: datos y transiciones de una orden.
-- `Cuadrilla`: capacidad, certificacion y disponibilidad.
-- `Jornada`: asignaciones, inicio y resultados.
-- `Empresa`: registros generales, ingresos y reportes.
-- `Main`: menu y lectura segura de entradas.
+- `Servicio`: contiene las reglas que cambian según la categoría.
+- `Orden`: guarda los datos de la orden y sus visitas.
+- `Cuadrilla`: guarda la capacidad y la certificación.
+- `Jornada`: controla las asignaciones y los resultados.
+- `Empresa`: guarda las listas, los ingresos y los reportes.
+- `Main`: muestra el menú y recibe los datos.
 
-La instalacion electrica certificada extiende a la instalacion porque es una instalacion con las mismas reglas base, pero con cargos, dias y limite de visitas propios. Asi se reutiliza codigo sin duplicar el calculo principal.
+## Pruebas que realicé
 
-Para agregar una categoria nueva se crea otra subclase de `Servicio` y se agrega su opcion de entrada en `Main`. Las jornadas y reportes no necesitan cambiar porque usan los metodos polimorficos de `Servicio`.
-
-## Pruebas basicas
-
-| Caso | Resultado esperado |
-|---|---|
-| Instalacion de 2.5 horas y 5 puntos metropolitanos | Q460.00 |
-| Diagnostico periferico | Q225.00 y 2 dias |
-| Instalacion electrica con materiales Q2,000 | Suma Q120 y 5% de materiales |
-| Aire acondicionado con cuadrilla no certificada | Asignacion rechazada |
-| Visita fallida antes del limite | Orden vuelve a pendiente |
-| Visita fallida al alcanzar el limite | Orden queda cancelada |
-| Cotizacion o retiro de orden | No aumenta ingresos |
+- Una instalación de 2.5 horas y 5 puntos metropolitanos calcula Q460.00.
+- Un diagnóstico periférico cuesta Q225.00 y tarda 2 días.
+- Una instalación eléctrica suma Q120.00 y el 5% de los materiales.
+- Un aire acondicionado no se puede asignar a una cuadrilla sin certificación.
+- Una visita fallida vuelve a dejar la orden pendiente si todavía puede intentarse otra vez.
+- Una cotización no aumenta los ingresos.
